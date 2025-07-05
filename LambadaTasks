@@ -1,0 +1,110 @@
+import java.util.function.*;
+import java.util.Random;
+
+public class LambdaTasks {
+
+    // Задание 1. Интерфейс Printable и лямбда выражение
+    interface Printable {
+        void print();
+    }
+
+    public static void task1() {
+        Printable printable = () -> System.out.println("Печатаем через лямбда выражение");
+        printable.print();
+    }
+
+    // Задание 2. Проверка пустой строки с Predicate
+    public static void task2() {
+        Predicate<String> notNull = s -> s != null;
+        Predicate<String> notEmpty = s -> !s.isEmpty();
+
+        String test1 = null;
+        String test2 = "";
+        String test3 = "Hello";
+
+        System.out.println("test1: " + (notNull.and(notEmpty).test(test1))); // false
+        System.out.println("test2: " + (notNull.and(notEmpty).test(test2))); // false
+        System.out.println("test3: " + (notNull.and(notEmpty).test(test3))); // true
+    }
+
+    // Задание 3. Проверка строки: начинается с J или N и заканчивается на A
+    public static void task3() {
+        Predicate<String> startsWithJorN = s -> s != null && (s.startsWith("J") || s.startsWith("N"));
+        Predicate<String> endsWithA = s -> s != null && s.endsWith("A");
+
+        String[] tests = {"JAVA", "NINA", "JACK", "NOLA", "MILA", "NA"};
+
+        for (String s : tests) {
+            boolean result = startsWithJorN.and(endsWithA).test(s);
+            System.out.printf("Строка '%s' соответствует условию: %b%n", s, result);
+        }
+    }
+
+    // Класс для задания 4
+    static class HeavyBox {
+        private final int weight;
+
+        public HeavyBox(int weight) {
+            this.weight = weight;
+        }
+
+        public int getWeight() {
+            return weight;
+        }
+    }
+
+    // Задание 4. Consumer для HeavyBox с andThen
+    public static void task4() {
+        Consumer<HeavyBox> shipBox = box -> System.out.println("Отгрузили ящик с весом " + box.getWeight());
+        Consumer<HeavyBox> sendBox = box -> System.out.println("Отправляем ящик с весом " + box.getWeight());
+
+        Consumer<HeavyBox> combined = sendBox.andThen(shipBox);
+
+        HeavyBox box = new HeavyBox(50);
+        combined.accept(box);
+    }
+
+    // Задание 5. Function для числа
+    public static void task5() {
+        Function<Integer, String> checkNumber = n -> {
+            if (n > 0) return "Положительное число";
+            else if (n < 0) return "Отрицательное число";
+            else return "Ноль";
+        };
+
+        int[] numbers = {10, -5, 0};
+
+        for (int n : numbers) {
+            System.out.printf("%d -> %s%n", n, checkNumber.apply(n));
+        }
+    }
+
+    // Задание 6. Supplier для случайного числа от 0 до 10
+    public static void task6() {
+        Supplier<Integer> randomSupplier = () -> new Random().nextInt(11);
+
+        // Демонстрация 5 случайных чисел
+        for (int i = 0; i < 5; i++) {
+            System.out.println("Случайное число: " + randomSupplier.get());
+        }
+    }
+    public static void main(String[] args) {
+        System.out.println("=== Задание 1 ===");
+        task1();
+
+        System.out.println("\n=== Задание 2 ===");
+        task2();
+
+        System.out.println("\n=== Задание 3 ===");
+        task3();
+
+        System.out.println("\n=== Задание 4 ===");
+        task4();
+
+        System.out.println("\n=== Задание 5 ===");
+        task5();
+
+        System.out.println("\n=== Задание 6 ===");
+        task6();
+    }
+}
