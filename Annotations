@@ -1,0 +1,112 @@
+import java.lang.annotation.*;
+import java.lang.reflect.*;
+
+public class Annotations {
+
+    // Задание 1. Кастомная аннотация @DeprecatedEx и обработчик
+
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target({ElementType.TYPE, ElementType.METHOD})
+    public @interface DeprecatedEx {
+        String message();
+    }
+
+    @DeprecatedEx(message = "Используйте NewClass вместо OldClass")
+    static class OldClass {
+
+        @DeprecatedEx(message = "Используйте newMethod вместо oldMethod")
+        public void oldMethod() {
+            System.out.println("Старый метод");
+        }
+
+        public void newMethod() {
+            System.out.println("Новый метод");
+        }
+    }
+
+    public static void checkDeprecatedEx(Class<?> clazz) {
+        // Проверяем класс
+        if (clazz.isAnnotationPresent(DeprecatedEx.class)) {
+            DeprecatedEx ann = clazz.getAnnotation(DeprecatedEx.class);
+            System.out.printf("Внимание: класс '%s' устарел. Альтернатива: '%s'%n", clazz.getSimpleName(), ann.message());
+        }
+
+        // Проверяем методы
+        for (Method method : clazz.getDeclaredMethods()) {
+            if (method.isAnnotationPresent(DeprecatedEx.class)) {
+                DeprecatedEx ann = method.getAnnotation(DeprecatedEx.class);
+                System.out.printf("Внимание: метод '%s' устарел. Альтернатива: '%s'%n", method.getName(), ann.message());
+            }
+        }
+    }
+
+    // Задание 2. Кастомная сериализация в JSON с аннотацией @JsonField
+
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.FIELD)
+    public @interface JsonField {
+        String name();
+    }
+
+    static class Person {
+        @JsonField(name = "first_name")
+        private String firstName;
+
+        @JsonField(name = "age")
+        private int age;
+
+        private String ignoreField;
+
+        public Person(String firstName, int age, String ignoreField) {
+            this.firstName = firstName;
+            this.age = age;
+            this.ignoreField = ignoreField;
+        }
+    }
+
+    public static String serializeToJson(Object obj) {
+        Class<?> clazz = obj.getClass();
+        StringBuilder sb = new StringBuilder();
+        sb.append("{");
+
+        Field[] fields = clazz.getDeclaredFields();
+        boolean first = true;
+
+        for (Field field : fields) {
+            if (field.isAnnotationPresent(JsonField.class)) {
+                field.setAccessible(true);
+                JsonField annotation = field.getAnnotation(JsonField.class);
+                try {
+                    Object value = field.get(obj);
+                    if (!first) {
+                        sb.append(", ");
+                    }
+                    sb.append("\"").append(annotation.name()).append("\": ");
+
+                    if (value == null) {
+                        sb.append("null");
+                    } else if (value instanceof String) {
+                        sb.append("\"").append(value).append("\"");
+                    } else {
+                        sb.append(value);
+                    }
+                    first = false;
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        sb.append("}");
+        return sb.toString();
+    }
+    public static void main(String[] args) {
+        System.out.println("\n=== Задание 7 ===");
+        checkDeprecatedEx(OldClass.class);
+
+        System.out.println("\n=== Задание 8 ===");
+        Person person = new Person("Иван", 30, "не отображать");
+        String json = serializeToJson(person);
+        System.out.println(json);
+    }
+}
